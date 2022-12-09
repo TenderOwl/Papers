@@ -1,18 +1,25 @@
 import 'package:go_router/go_router.dart';
 
-import 'pages/documents_page.dart';
-import 'pages/editor_page.dart';
+import 'pages/papers_page.dart';
+import 'pages/paper_page.dart';
 
 final router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const DocumentsPage(),
+      name: 'papersPage',
+      builder: (context, state) => const PapersPage(),
     ),
+    // GoRoute(
+    //   path: '/books/:bookId/papers',
+    //   name: 'papersPage',
+    //   builder: (context, state) =>
+    //       const BookPage(bookId: state.params['bookId']),
+    // ),
     GoRoute(
-      path: '/document/:documentId',
-      builder: (context, state) =>
-          EditorPage(documentId: state.params['documentId']),
+      path: '/papers/:paperId',
+      name: 'paperPage',
+      builder: (context, state) => PaperPage(paperId: state.params['paperId']),
     ),
   ],
 );
