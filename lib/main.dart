@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:isar/isar.dart';
+import 'package:papers/src/models/book.dart';
+import 'package:papers/src/models/paper.dart';
+import 'package:papers/src/services/books_service.dart';
+import 'package:papers/src/services/papers_service.dart';
 
 import 'src/router.dart';
 
-void main() {
+void main() async {
+  await initServices();
+
   runApp(const MyApp());
 }
 
@@ -22,4 +30,11 @@ class MyApp extends StatelessWidget {
       routerConfig: router,
     );
   }
+}
+
+Future initServices() async {
+  Isar isar = await Isar.open([BookSchema, PaperSchema]);
+  Get.put(isar);
+  Get.put(BooksService());
+  Get.put(PapersService());
 }
