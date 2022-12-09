@@ -5,6 +5,7 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
+import '../components/paper_rename_dialog.dart';
 import '../models/paper.dart';
 import '../services/papers_service.dart';
 
@@ -42,8 +43,7 @@ class _PaperPageState extends State<PaperPage> {
     if (paper == null) return;
 
     paper!.content = jsonEncode(controller.document.toDelta().toJson());
-    final paperId = papersService.putSync(paper!);
-    print('Paper saved with id $paperId');
+    papersService.putSync(paper!);
 
     controller.dispose();
   }
@@ -52,13 +52,30 @@ class _PaperPageState extends State<PaperPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(paper?.title == null ? 'Paper' : paper!.title!),
+        title: GestureDetector(
+          child: Text(paper?.title == null ? 'Paper' : paper!.title!),
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: ((context) {
+                return PaperRenameDialog(
+                  title: paper?.title ?? '',
+                  onChange: (title) => setState(() {
+                    if (paper != null) {
+                      paper!.title = title;
+                    }
+                  }),
+                );
+              }),
+            );
+          },
+        ),
         leading: IconButton(
           onPressed: () {
             closePaper();
             context.pop();
           },
-          icon: Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios),
         ),
       ),
       body: SafeArea(
@@ -66,7 +83,17 @@ class _PaperPageState extends State<PaperPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: quill.QuillToolbar.basic(controller: controller),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: quill.QuillToolbar.basic(
+                controller: controller,
+                toolbarIconAlignment: WrapAlignment.spaceBetween,
+                showAlignmentButtons: false,
+                showDirection: false,
+                showFontFamily: false,
+                showFontSize: false,
+              ),
+            ),
           ),
           Expanded(
             child: Padding(
