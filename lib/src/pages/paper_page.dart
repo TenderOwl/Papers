@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../components/paper_rename_dialog.dart';
 import '../models/paper.dart';
@@ -53,23 +55,8 @@ class _PaperPageState extends State<PaperPage> {
     return Scaffold(
       appBar: AppBar(
         title: GestureDetector(
-          child: Text(paper?.title == null ? 'Paper' : paper!.title!),
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: ((context) {
-                return PaperRenameDialog(
-                  title: paper?.title ?? '',
-                  onChange: (title) => setState(() {
-                    if (paper != null) {
-                      paper!.title = title;
-                    }
-                  }),
-                );
-              }),
-            );
-          },
-        ),
+            child: Text(paper?.title == null ? 'Paper' : paper!.title!),
+            onTap: showRenameDialog),
         leading: IconButton(
           onPressed: () {
             closePaper();
@@ -77,6 +64,17 @@ class _PaperPageState extends State<PaperPage> {
           },
           icon: const Icon(Icons.arrow_back_ios),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              final bytes = Uint8List.fromList(
+                  utf8.encode(controller.document.toPlainText()));
+              Share.shareXFiles(
+                  [XFile.fromData(bytes, name: paper?.title ?? 'Paper')]);
+            },
+            icon: const Icon(Icons.share_outlined),
+          ),
+        ],
       ),
       body: SafeArea(
           child: Column(
@@ -106,6 +104,22 @@ class _PaperPageState extends State<PaperPage> {
           )
         ],
       )),
+    );
+  }
+
+  void showRenameDialog() {
+    showDialog(
+      context: context,
+      builder: ((context) {
+        return PaperRenameDialog(
+          title: paper?.title ?? '',
+          onChange: (title) => setState(() {
+            if (paper != null) {
+              paper!.title = title;
+            }
+          }),
+        );
+      }),
     );
   }
 }
