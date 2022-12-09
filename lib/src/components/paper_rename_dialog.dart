@@ -25,12 +25,21 @@ class _PaperRenameDialogState extends State<PaperRenameDialog> {
   Widget build(BuildContext context) {
     return SimpleDialog(
       contentPadding: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       title: const Text('Rename paper'),
       children: [
-        TextField(
-          controller: titleController,
-          autofocus: true,
-          onSubmitted: (value) => submit(),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: TextField(
+            controller: titleController,
+            autofocus: true,
+            onSubmitted: (value) => submit(),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.primary.withAlpha(20),
+            ),
+          ),
         ),
         Padding(
           padding: const EdgeInsets.only(top: 12),
@@ -39,7 +48,7 @@ class _PaperRenameDialogState extends State<PaperRenameDialog> {
             children: [
               TextButton(
                 onPressed: () => submit(),
-                child: const Text('Rename'),
+                child: const Text('Save'),
               )
             ],
           ),
