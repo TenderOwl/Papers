@@ -55,62 +55,63 @@ class _PaperPageState extends State<PaperPage> {
     return Scaffold(
       appBar: AppBar(
         title: GestureDetector(
-            child: Text(paper?.title == null ? 'Paper' : paper!.title!),
-            onTap: showRenameDialog),
-        leading: IconButton(
-          onPressed: () {
-            closePaper();
-            context.pop();
-          },
-          icon: const Icon(Icons.arrow_back_ios),
+          onTap: showRenameDialog,
+          child: Text(paper?.title == null ? 'Paper' : paper!.title!),
+        ),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: IconButton(
+            onPressed: () {
+              closePaper();
+              context.pop();
+            },
+            icon: const Icon(Icons.arrow_back_ios),
+          ),
         ),
         actions: [
           IconButton(
-            onPressed: () {
-              final bytes = Uint8List.fromList(
-                  utf8.encode(controller.document.toPlainText()));
-              Share.shareXFiles(
-                  [XFile.fromData(bytes, name: paper?.title ?? 'Paper')]);
-            },
+            onPressed: sharePaper,
             icon: const Icon(Icons.share_outlined),
           ),
+          const SizedBox(width: 12),
         ],
       ),
       body: SafeArea(
-          child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: quill.QuillToolbar.basic(
-                controller: controller,
-                toolbarIconAlignment: WrapAlignment.spaceBetween,
-                showAlignmentButtons: false,
-                showDirection: false,
-                showFontFamily: false,
-                showFontSize: false,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
+        child: Column(
+          children: [
+            Padding(
               padding: const EdgeInsets.all(8.0),
-              child: quill.QuillEditor.basic(
-                controller: controller,
-                readOnly: false, // true for view only mode
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: quill.QuillToolbar.basic(
+                  controller: controller,
+                  toolbarIconAlignment: WrapAlignment.spaceBetween,
+                  showAlignmentButtons: false,
+                  showDirection: false,
+                  showFontFamily: false,
+                  showFontSize: false,
+                ),
               ),
             ),
-          )
-        ],
-      )),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: quill.QuillEditor.basic(
+                  controller: controller,
+                  readOnly: false, // true for view only mode
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 
   void showRenameDialog() {
     showDialog(
       context: context,
-      builder: ((context) {
+      builder: (context) {
         return PaperRenameDialog(
           title: paper?.title ?? '',
           onChange: (title) => setState(() {
@@ -119,7 +120,26 @@ class _PaperPageState extends State<PaperPage> {
             }
           }),
         );
-      }),
+      },
+    );
+  }
+
+  void sharePaper() {
+    final filename = '${paper?.title ?? 'Paper'}.html';
+    final plainText = controller.document.toPlainText();
+    final bytes = Uint8List.fromList(utf8.encode(plainText));
+
+    Share.shareXFiles(
+      [
+        XFile.fromData(
+          bytes,
+          name: filename,
+          mimeType: 'text/plain',
+          path: filename,
+        )
+      ],
+      text: filename,
+      subject: filename,
     );
   }
 }
