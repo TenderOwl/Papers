@@ -27,9 +27,12 @@ class PaperTile extends StatelessWidget {
                   padding: EdgeInsets.all(8.0),
                   child: Icon(Icons.book_outlined),
                 ),
-                Text(
-                  paper.content.substring(0, 10),
-                  overflow: TextOverflow.ellipsis,
+                Flexible(
+                  child: Text(
+                    paper.title ?? paper.content.substring(0, 10),
+                    // overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),
