@@ -5,12 +5,12 @@ part 'book.g.dart';
 @collection
 class Book {
   Id? id = Isar.autoIncrement;
-  String? title;
-  String description;
+  String title;
+  String? description;
   bool encrypted = false;
 
   late DateTime createdAt = DateTime.now();
   late DateTime updatedAt;
 
-  Book({required this.description, this.id, this.title});
+  Book({required this.title, this.id, this.description});
 }

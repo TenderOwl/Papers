@@ -63,13 +63,13 @@ int _bookEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.description.length * 3;
   {
-    final value = object.title;
+    final value = object.description;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.title.length * 3;
   return bytesCount;
 }
 
@@ -93,9 +93,9 @@ Book _bookDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Book(
-    description: reader.readString(offsets[1]),
+    description: reader.readStringOrNull(offsets[1]),
     id: id,
-    title: reader.readStringOrNull(offsets[3]),
+    title: reader.readString(offsets[3]),
   );
   object.createdAt = reader.readDateTime(offsets[0]);
   object.encrypted = reader.readBool(offsets[2]);
@@ -113,11 +113,11 @@ P _bookDeserializeProp<P>(
     case 0:
       return (reader.readDateTime(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
       return (reader.readDateTime(offset)) as P;
     default:
@@ -266,8 +266,24 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Book, Book, QAfterFilterCondition> descriptionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'description',
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> descriptionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'description',
+      ));
+    });
+  }
+
   QueryBuilder<Book, Book, QAfterFilterCondition> descriptionEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -280,7 +296,7 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
   }
 
   QueryBuilder<Book, Book, QAfterFilterCondition> descriptionGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -295,7 +311,7 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
   }
 
   QueryBuilder<Book, Book, QAfterFilterCondition> descriptionLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -310,8 +326,8 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
   }
 
   QueryBuilder<Book, Book, QAfterFilterCondition> descriptionBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -473,24 +489,8 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Book, Book, QAfterFilterCondition> titleIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'title',
-      ));
-    });
-  }
-
-  QueryBuilder<Book, Book, QAfterFilterCondition> titleIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'title',
-      ));
-    });
-  }
-
   QueryBuilder<Book, Book, QAfterFilterCondition> titleEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -503,7 +503,7 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
   }
 
   QueryBuilder<Book, Book, QAfterFilterCondition> titleGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -518,7 +518,7 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
   }
 
   QueryBuilder<Book, Book, QAfterFilterCondition> titleLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -533,8 +533,8 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
   }
 
   QueryBuilder<Book, Book, QAfterFilterCondition> titleBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -858,7 +858,7 @@ extension BookQueryProperty on QueryBuilder<Book, Book, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Book, String, QQueryOperations> descriptionProperty() {
+  QueryBuilder<Book, String?, QQueryOperations> descriptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'description');
     });
@@ -870,7 +870,7 @@ extension BookQueryProperty on QueryBuilder<Book, Book, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Book, String?, QQueryOperations> titleProperty() {
+  QueryBuilder<Book, String, QQueryOperations> titleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'title');
     });
