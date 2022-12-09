@@ -19,7 +19,6 @@ class PapersService {
   }
 
   int putSync(Paper paper) {
-    paper.createdAt = DateTime.now();
     paper.updatedAt = DateTime.now();
     return isar.writeTxnSync(() => isar.papers.putSync(paper));
   }
