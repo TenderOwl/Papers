@@ -1,16 +1,34 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:delta_to_html/delta_to_html.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pdf/pdf.dart' show PdfPageFormat;
 
 import '../components/paper_rename_dialog.dart';
 import '../models/paper.dart';
 import '../services/papers_service.dart';
+
+extension GlobalKeyExtension on GlobalKey {
+  Rect? get globalPaintBounds {
+    final renderObject = currentContext?.findRenderObject();
+    final translation = renderObject?.getTransformTo(null).getTranslation();
+    if (translation != null && renderObject?.paintBounds != null) {
+      final offset = Offset(translation.x, translation.y);
+      return renderObject!.paintBounds.shift(offset);
+    } else {
+      return null;
+    }
+  }
+}
 
 class PaperPage extends StatefulWidget {
   const PaperPage({super.key, this.paperId});
@@ -27,6 +45,8 @@ class _PaperPageState extends State<PaperPage> {
   final controller = quill.QuillController.basic();
   Paper? paper;
 
+  final shareButtonKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +62,8 @@ class _PaperPageState extends State<PaperPage> {
     } else {
       paper = Paper(bookId: 0, content: '{}');
     }
+
+    SystemChrome.latestStyle;
   }
 
   void closePaper() {
@@ -67,7 +89,7 @@ class _PaperPageState extends State<PaperPage> {
         ),
         centerTitle: true,
         leading: Padding(
-          padding: EdgeInsets.only(left: Platform.isMacOS ? 96 : 12),
+          padding: EdgeInsets.only(left: Platform.isMacOS ? 96.0 : 12.0),
           child: IconButton(
             onPressed: () {
               closePaper();
@@ -79,10 +101,29 @@ class _PaperPageState extends State<PaperPage> {
         ),
         leadingWidth: Platform.isMacOS ? 128 : 56,
         actions: [
+          Tooltip(
+            message: 'Print paper',
+            waitDuration: const Duration(milliseconds: 400),
+            child: IconButton(
+              onPressed: printPaper,
+              icon: const Icon(Icons.print_rounded),
+              splashRadius: 24,
+            ),
+          ),
           IconButton(
+            key: shareButtonKey,
             onPressed: sharePaper,
             icon: const Icon(Icons.share_outlined),
             splashRadius: 24,
+          ),
+          Tooltip(
+            message: 'Download paper to computer',
+            waitDuration: const Duration(milliseconds: 400),
+            child: IconButton(
+              onPressed: sharePaper,
+              icon: const Icon(Icons.download),
+              splashRadius: 24,
+            ),
           ),
           const SizedBox(width: 12),
         ],
@@ -102,15 +143,24 @@ class _PaperPageState extends State<PaperPage> {
                   showDirection: false,
                   showFontFamily: false,
                   showFontSize: false,
+                  showColorButton: false,
+                  showBackgroundColorButton: false,
                 ),
               ),
             ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: quill.QuillEditor.basic(
+                child: quill.QuillEditor(
                   controller: controller,
-                  readOnly: false, // true for view only mode
+                  autoFocus: true,
+                  focusNode: FocusNode(),
+                  scrollController: ScrollController(),
+                  scrollable: true,
+                  padding: const EdgeInsets.all(12),
+                  expands: true,
+                  readOnly: true,
+                  maxContentWidth: 900,
                 ),
               ),
             )
@@ -137,21 +187,30 @@ class _PaperPageState extends State<PaperPage> {
   }
 
   void sharePaper() {
-    final filename = '${paper?.title ?? 'Paper'}.html';
+    final filename = '${paper?.title ?? 'Paper'}.md';
     final plainText = controller.document.toPlainText();
     final bytes = Uint8List.fromList(utf8.encode(plainText));
 
-    Share.shareXFiles(
-      [
-        XFile.fromData(
-          bytes,
-          name: filename,
-          mimeType: 'text/plain',
-          path: filename,
-        )
-      ],
-      text: filename,
-      subject: filename,
-    );
+    Share.shareXFiles([
+      XFile.fromData(
+        bytes,
+        name: filename,
+        mimeType: 'text/plain',
+        path: filename,
+      )
+    ],
+        text: filename,
+        subject: filename,
+        sharePositionOrigin: shareButtonKey.globalPaintBounds);
+  }
+
+  Future printPaper() async {
+    final delta = controller.document.toDelta();
+    final html = DeltaToHTML.encodeJson(delta.toJson());
+    final pdf =
+        await Printing.convertHtml(html: html, format: PdfPageFormat.a4);
+
+    await Printing.layoutPdf(
+        onLayout: (format) => pdf, name: paper?.title ?? 'Paper');
   }
 }
