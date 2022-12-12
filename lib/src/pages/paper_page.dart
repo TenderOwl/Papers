@@ -2,12 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:delta_to_html/delta_to_html.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
@@ -62,8 +60,6 @@ class _PaperPageState extends State<PaperPage> {
     } else {
       paper = Paper(bookId: 0, content: '{}');
     }
-
-    SystemChrome.latestStyle;
   }
 
   void closePaper() {
