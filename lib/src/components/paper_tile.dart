@@ -11,6 +11,7 @@ class PaperTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
