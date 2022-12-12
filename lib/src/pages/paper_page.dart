@@ -7,10 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:papers/src/actions/text_format.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart' show PdfPageFormat;
 
+import '../actions/dispatcher.dart';
 import '../components/paper_rename_dialog.dart';
 import '../models/paper.dart';
 import '../services/papers_service.dart';
@@ -77,94 +79,105 @@ class _PaperPageState extends State<PaperPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: GestureDetector(
-          onTap: showRenameDialog,
-          child: Text(paper?.title == null ? 'Paper' : paper!.title!),
-        ),
-        centerTitle: true,
-        leading: Padding(
-          padding: EdgeInsets.only(left: Platform.isMacOS ? 96.0 : 12.0),
-          child: IconButton(
-            onPressed: () {
-              closePaper();
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/');
-              }
-            },
-            icon: const Icon(Icons.arrow_back_ios),
-            splashRadius: 24,
+    return Shortcuts(
+      shortcuts: const {
+        SingleActivator(LogicalKeyboardKey.keyB, control: true): BoldIntent()
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: GestureDetector(
+            onTap: showRenameDialog,
+            child: Text(paper?.title == null ? 'Paper' : paper!.title!),
           ),
-        ),
-        leadingWidth: Platform.isMacOS ? 128 : 56,
-        actions: [
-          Tooltip(
-            message: 'Print paper',
-            waitDuration: const Duration(milliseconds: 400),
+          centerTitle: true,
+          leading: Padding(
+            padding: EdgeInsets.only(left: Platform.isMacOS ? 96.0 : 12.0),
             child: IconButton(
-              onPressed: printPaper,
-              icon: const Icon(Icons.print_rounded),
+              onPressed: () {
+                closePaper();
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
+              },
+              icon: const Icon(Icons.arrow_back_ios),
               splashRadius: 24,
             ),
           ),
-          IconButton(
-            key: shareButtonKey,
-            onPressed: sharePaper,
-            icon: const Icon(Icons.share_outlined),
-            splashRadius: 24,
-          ),
-          Tooltip(
-            message: 'Download paper to computer',
-            waitDuration: const Duration(milliseconds: 400),
-            child: IconButton(
+          leadingWidth: Platform.isMacOS ? 128 : 56,
+          actions: [
+            Tooltip(
+              message: 'Print paper',
+              waitDuration: const Duration(milliseconds: 400),
+              child: IconButton(
+                onPressed: printPaper,
+                icon: const Icon(Icons.print_rounded),
+                splashRadius: 24,
+              ),
+            ),
+            IconButton(
+              key: shareButtonKey,
               onPressed: sharePaper,
-              icon: const Icon(Icons.download),
+              icon: const Icon(Icons.share_outlined),
               splashRadius: 24,
             ),
-          ),
-          const SizedBox(width: 12),
-        ],
-        elevation: 1,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: quill.QuillToolbar.basic(
-                  controller: controller,
-                  toolbarIconAlignment: WrapAlignment.spaceBetween,
-                  showAlignmentButtons: false,
-                  showDirection: false,
-                  showFontFamily: false,
-                  showFontSize: false,
-                  showColorButton: false,
-                  showBackgroundColorButton: false,
-                ),
+            Tooltip(
+              message: 'Download paper to computer',
+              waitDuration: const Duration(milliseconds: 400),
+              child: IconButton(
+                onPressed: sharePaper,
+                icon: const Icon(Icons.download),
+                splashRadius: 24,
               ),
             ),
-            Expanded(
-              child: Padding(
+            const SizedBox(width: 12),
+          ],
+          elevation: 1,
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: quill.QuillEditor(
-                  controller: controller,
-                  autoFocus: true,
-                  focusNode: FocusNode(),
-                  scrollController: ScrollController(),
-                  scrollable: true,
-                  padding: const EdgeInsets.all(12),
-                  expands: true,
-                  readOnly: false,
-                  maxContentWidth: 900,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: quill.QuillToolbar.basic(
+                    controller: controller,
+                    toolbarIconAlignment: WrapAlignment.spaceBetween,
+                    showAlignmentButtons: false,
+                    showDirection: false,
+                    showFontFamily: false,
+                    showFontSize: false,
+                    showColorButton: false,
+                    showBackgroundColorButton: false,
+                  ),
                 ),
               ),
-            )
-          ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Actions(
+                    dispatcher: LoggingActionDispatcher(),
+                    actions: <Type, Action<Intent>>{
+                      BoldIntent: BoldAction(controller),
+                    },
+                    child: quill.QuillEditor(
+                      controller: controller,
+                      autoFocus: true,
+                      focusNode: FocusNode(),
+                      scrollController: ScrollController(),
+                      scrollable: true,
+                      padding: const EdgeInsets.all(12),
+                      expands: true,
+                      readOnly: false,
+                      maxContentWidth: 900,
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
