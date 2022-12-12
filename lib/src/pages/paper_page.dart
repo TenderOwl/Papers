@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,8 @@ class _PaperPageState extends State<PaperPage> {
 
     if (widget.paperId != null && widget.paperId != 'new') {
       paper = papersService.getSync(int.tryParse(widget.paperId!)!);
+
+      // Load initial content
       if (paper != null) {
         controller.document =
             quill.Document.fromJson(jsonDecode(paper!.content));
@@ -42,10 +45,11 @@ class _PaperPageState extends State<PaperPage> {
   }
 
   void closePaper() {
-    if (paper == null) return;
-
-    paper!.content = jsonEncode(controller.document.toDelta().toJson());
-    papersService.putSync(paper!);
+    // Check if we have paper and edited text is not empty.
+    if (paper != null && !controller.document.isEmpty()) {
+      paper!.content = jsonEncode(controller.document.toDelta().toJson());
+      papersService.putSync(paper!);
+    }
 
     controller.dispose();
   }
@@ -58,23 +62,28 @@ class _PaperPageState extends State<PaperPage> {
           onTap: showRenameDialog,
           child: Text(paper?.title == null ? 'Paper' : paper!.title!),
         ),
+        centerTitle: true,
         leading: Padding(
-          padding: const EdgeInsets.only(left: 12),
+          padding: EdgeInsets.only(left: Platform.isMacOS ? 96 : 12),
           child: IconButton(
             onPressed: () {
               closePaper();
               context.pop();
             },
             icon: const Icon(Icons.arrow_back_ios),
+            splashRadius: 24,
           ),
         ),
+        leadingWidth: Platform.isMacOS ? 128 : 56,
         actions: [
           IconButton(
             onPressed: sharePaper,
             icon: const Icon(Icons.share_outlined),
+            splashRadius: 24,
           ),
           const SizedBox(width: 12),
         ],
+        elevation: 1,
       ),
       body: SafeArea(
         child: Column(
