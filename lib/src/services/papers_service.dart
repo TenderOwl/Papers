@@ -10,12 +10,24 @@ class PapersService {
     return isar.papers.where().findAllSync();
   }
 
+  Future<List<Paper>> getAll() async {
+    return await isar.papers.where().findAll();
+  }
+
   List<Paper> getByBookAllSync(int bookId) {
     return isar.papers.filter().bookIdEqualTo(bookId).findAllSync();
   }
 
+  Future<List<Paper>> getByBookAll(int bookId) async {
+    return await isar.papers.filter().bookIdEqualTo(bookId).findAll();
+  }
+
   Paper? getSync(int paperId) {
     return isar.papers.getSync(paperId);
+  }
+
+  Future<Paper?> get(int paperId) async {
+    return await isar.papers.get(paperId);
   }
 
   int putSync(Paper paper) {
@@ -35,7 +47,11 @@ class PapersService {
     return isar.writeTxnSync(() => isar.papers.putSync(paper));
   }
 
-  bool removeSync(int paperId) {
-    return isar.papers.deleteSync(paperId);
+  bool deleteSync(int paperId) {
+    return isar.writeTxnSync(() => isar.papers.deleteSync(paperId));
+  }
+
+  Future<bool> delete(int paperId) async {
+    return isar.writeTxn(() async => await isar.papers.delete(paperId));
   }
 }
