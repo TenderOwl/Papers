@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:papers/src/components/search_papers_dialog.dart';
 
 import '../components/paper_tile.dart';
 import '../models/paper.dart';
@@ -39,7 +40,25 @@ class _PapersPageState extends State<PapersPage> {
           'Papers',
           style: GoogleFonts.comfortaa(),
         ),
+        centerTitle: true,
         elevation: 0,
+        actions: [
+          Tooltip(
+            message: 'Search for paper',
+            waitDuration: const Duration(milliseconds: 400),
+            child: IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const SearchPaperDialog(),
+                );
+              },
+              icon: const Icon(Icons.search_rounded),
+              splashRadius: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
       ),
       body: ContextMenuOverlay(
         child: SafeArea(

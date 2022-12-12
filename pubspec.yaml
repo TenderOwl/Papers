@@ -16,6 +16,7 @@ dependencies:
   get: ^4.6.5
   isar: ^3.0.5
   isar_flutter_libs: ^3.0.5
+  easy_debounce: ^2.0.2+1
 
   flutter_quill: ^6.1.6
   google_fonts: ^3.0.1

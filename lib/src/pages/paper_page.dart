@@ -89,7 +89,11 @@ class _PaperPageState extends State<PaperPage> {
           child: IconButton(
             onPressed: () {
               closePaper();
-              context.pop();
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
             },
             icon: const Icon(Icons.arrow_back_ios),
             splashRadius: 24,
@@ -155,7 +159,7 @@ class _PaperPageState extends State<PaperPage> {
                   scrollable: true,
                   padding: const EdgeInsets.all(12),
                   expands: true,
-                  readOnly: true,
+                  readOnly: false,
                   maxContentWidth: 900,
                 ),
               ),

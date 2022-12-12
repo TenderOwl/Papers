@@ -54,4 +54,13 @@ class PapersService {
   Future<bool> delete(int paperId) async {
     return isar.writeTxn(() async => await isar.papers.delete(paperId));
   }
+
+  Future<List<Paper>> search(String value) async {
+    return isar.papers
+        .filter()
+        .titleContains(value, caseSensitive: false)
+        .or()
+        .contentContains(value, caseSensitive: false)
+        .findAll();
+  }
 }
