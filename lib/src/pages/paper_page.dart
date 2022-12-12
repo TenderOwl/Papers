@@ -47,6 +47,9 @@ class _PaperPageState extends State<PaperPage> {
   void closePaper() {
     // Check if we have paper and edited text is not empty.
     if (paper != null && !controller.document.isEmpty()) {
+      // Set default title
+      paper!.title = paper?.title ?? 'Paper';
+      // Save content
       paper!.content = jsonEncode(controller.document.toDelta().toJson());
       papersService.putSync(paper!);
     }

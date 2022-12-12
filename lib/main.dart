@@ -25,7 +25,8 @@ class MyApp extends StatelessWidget {
       title: 'Papers',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF672024),
+        // colorSchemeSeed: const Color(0xFF672024),
+        colorSchemeSeed: const Color(0xff335763),
         textTheme: GoogleFonts.ibmPlexSansTextTheme(),
       ),
       routerConfig: router,

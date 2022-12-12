@@ -12,31 +12,29 @@ class PaperTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: ClipRRect(
+      child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: () {
-            print('Paper with id ${paper.id} clicked');
-            onTap != null ? onTap!(paper.id) : null;
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(Icons.book_outlined),
+        onTap: () {
+          print('Paper with id ${paper.id} clicked');
+          onTap != null ? onTap!(paper.id) : null;
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(Icons.book_outlined),
+              ),
+              Flexible(
+                child: Text(
+                  paper.title ?? paper.content.substring(0, 10),
+                  // overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
-                Flexible(
-                  child: Text(
-                    paper.title ?? paper.content.substring(0, 10),
-                    // overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

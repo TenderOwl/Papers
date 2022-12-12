@@ -56,6 +56,7 @@ class _PapersPageState extends State<PapersPage> {
                         height: 120,
                         child: ContextMenuRegion(
                           contextMenu: GenericContextMenu(
+                            injectDividers: true,
                             buttonConfigs: [
                               ContextMenuButtonConfig("Export",
                                   onPressed: () {}),
@@ -65,12 +66,16 @@ class _PapersPageState extends State<PapersPage> {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: const Text('Delete Paper'),
+                                    title: const Text('Delete Paper?'),
                                     content: const Text(
                                       'Paper will be deleted permanently.\nThis action cannot be undone.',
                                     ),
                                     icon: const Icon(
-                                        Icons.delete_forever_outlined),
+                                      Icons.delete_forever_outlined,
+                                      size: 36,
+                                    ),
+                                    iconColor:
+                                        Theme.of(context).colorScheme.error,
                                     actions: [
                                       TextButton(
                                         child: const Text('Cancel'),
