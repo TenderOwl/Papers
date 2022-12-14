@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:line_icons/line_icon.dart';
 
 import '../models/paper.dart';
 
@@ -21,11 +22,11 @@ class PaperTile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Icon(Icons.book_outlined),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: LineIcon.bookOpen(size: 32),
               ),
               Flexible(
                 child: Text(

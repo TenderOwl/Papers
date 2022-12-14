@@ -2,6 +2,7 @@ import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:line_icons/line_icon.dart';
 import 'package:papers/src/models/paper.dart';
 
 import '../services/papers_service.dart';
@@ -63,7 +64,7 @@ class _SearchPaperDialogState extends State<SearchPaperDialog> {
               final paper = papers[index];
               return ListTile(
                 title: Text(paper.title!),
-                leading: const Icon(Icons.description_rounded),
+                leading: LineIcon.fileAlt(),
                 dense: true,
                 onTap: () => context.goNamed(
                   'paperPage',

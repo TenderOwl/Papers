@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:line_icons/line_icon.dart';
 import 'package:papers/src/actions/text_format.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
@@ -101,7 +102,7 @@ class _PaperPageState extends State<PaperPage> {
                   context.go('/');
                 }
               },
-              icon: const Icon(Icons.arrow_back_ios),
+              icon: LineIcon.arrowLeft(),
               splashRadius: 24,
             ),
           ),
@@ -112,14 +113,14 @@ class _PaperPageState extends State<PaperPage> {
               waitDuration: const Duration(milliseconds: 400),
               child: IconButton(
                 onPressed: printPaper,
-                icon: const Icon(Icons.print_rounded),
+                icon: LineIcon.print(),
                 splashRadius: 24,
               ),
             ),
             IconButton(
               key: shareButtonKey,
               onPressed: sharePaper,
-              icon: const Icon(Icons.share_outlined),
+              icon: LineIcon.share(),
               splashRadius: 24,
             ),
             Tooltip(
@@ -127,7 +128,7 @@ class _PaperPageState extends State<PaperPage> {
               waitDuration: const Duration(milliseconds: 400),
               child: IconButton(
                 onPressed: sharePaper,
-                icon: const Icon(Icons.download),
+                icon: LineIcon.download(),
                 splashRadius: 24,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:line_icons/line_icon.dart';
 
 import '../models/book.dart';
 
@@ -17,9 +18,9 @@ class BookTile extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           child: Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Icon(Icons.book_outlined),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: LineIcon.book(),
               ),
               Text(book.title),
             ],

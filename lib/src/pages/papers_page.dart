@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:line_icons/line_icon.dart';
 
 import '../actions/dispatcher.dart';
 import '../actions/search_for_paper.dart';
@@ -65,7 +66,7 @@ class _PapersPageState extends State<PapersPage> {
                       context,
                       const SearchForPaperIntent(),
                     ),
-                    icon: const Icon(Icons.search_rounded),
+                    icon: LineIcon.search(),
                     splashRadius: 24,
                   ),
                 ),
@@ -102,10 +103,7 @@ class _PapersPageState extends State<PapersPage> {
                                           content: const Text(
                                             'Paper will be deleted permanently.\nThis action cannot be undone.',
                                           ),
-                                          icon: const Icon(
-                                            Icons.delete_forever_outlined,
-                                            size: 36,
-                                          ),
+                                          icon: LineIcon.trash(size: 36),
                                           iconColor: Theme.of(context)
                                               .colorScheme
                                               .error,
@@ -151,7 +149,7 @@ class _PapersPageState extends State<PapersPage> {
               onPressed: () {
                 context.pushNamed('paperPage', params: {'paperId': 'new'});
               },
-              child: const Icon(Icons.add),
+              child: LineIcon.plus(),
             ),
           );
         }),
