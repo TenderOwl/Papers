@@ -30,6 +30,11 @@ class PapersService {
     return await isar.papers.get(paperId);
   }
 
+  Future<int> put(Paper paper) async {
+    paper.updatedAt = DateTime.now();
+    return isar.writeTxn(() async => await isar.papers.put(paper));
+  }
+
   int putSync(Paper paper) {
     paper.updatedAt = DateTime.now();
     return isar.writeTxnSync(() => isar.papers.putSync(paper));

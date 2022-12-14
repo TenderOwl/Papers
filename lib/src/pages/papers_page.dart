@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:context_menus/context_menus.dart';
+import 'package:delta_markdown/delta_markdown.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:line_icons/line_icon.dart';
+import 'package:path/path.dart' show basenameWithoutExtension;
 
 import '../actions/dispatcher.dart';
 import '../actions/search_for_paper.dart';
@@ -57,6 +62,19 @@ class _PapersPageState extends State<PapersPage> {
               ),
               centerTitle: true,
               elevation: 0,
+              leading: Padding(
+                padding: EdgeInsets.only(left: Platform.isMacOS ? 82.0 : 12.0),
+                child: Tooltip(
+                  message: 'Import file',
+                  waitDuration: const Duration(milliseconds: 400),
+                  child: IconButton(
+                    onPressed: onImportMarkdown,
+                    icon: LineIcon.fileImport(),
+                    splashRadius: 24,
+                  ),
+                ),
+              ),
+              leadingWidth: Platform.isMacOS ? 128 : 56,
               actions: [
                 Tooltip(
                   message: 'Search for paper',
@@ -172,5 +190,32 @@ class _PapersPageState extends State<PapersPage> {
       context: context,
       builder: (context) => const SearchPaperDialog(),
     );
+  }
+
+  Future onImportMarkdown() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      final file = File(result.files.single.path!);
+      final makrdown = await file.readAsString();
+      final delta = markdownToDelta(makrdown);
+
+      final paper = Paper(
+        bookId: 0,
+        content: delta,
+        title: basenameWithoutExtension(result.files.single.path!),
+      );
+      await papersService.put(paper);
+
+      reloadPapers();
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cannot get that file'),
+          ),
+        );
+      }
+    }
   }
 }
