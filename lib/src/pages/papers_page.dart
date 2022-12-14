@@ -1,10 +1,11 @@
+import 'dart:convert' show LineSplitter, jsonEncode, utf8;
 import 'dart:io';
 
 import 'package:context_menus/context_menus.dart';
-import 'package:delta_markdown/delta_markdown.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -197,21 +198,26 @@ class _PapersPageState extends State<PapersPage> {
 
     if (result != null) {
       final file = File(result.files.single.path!);
-      final makrdown = await file.readAsString();
-      final delta = markdownToDelta(makrdown);
+      final delta = quill.Delta();
+      for (var line in await file.readAsLines()) {
+        delta.insert('$line\n');
+      }
+
+      // final doc = quill.Document.fromDelta(delta);
 
       final paper = Paper(
         bookId: 0,
-        content: delta,
+        content: jsonEncode(delta.toJson()),
         title: basenameWithoutExtension(result.files.single.path!),
       );
+
       await papersService.put(paper);
 
       reloadPapers();
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Cannot get that file'),
           ),
         );

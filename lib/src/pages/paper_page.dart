@@ -71,7 +71,7 @@ class _PaperPageState extends State<PaperPage> {
       // Set default title
       paper!.title = paper?.title ?? 'Paper';
       // Save content
-      paper!.content = jsonEncode(controller.document.toDelta().toJson());
+      paper!.content = jsonEncode(controller.document.toDelta());
       papersService.putSync(paper!);
     }
 

@@ -16,7 +16,7 @@ dependencies:
   get: ^4.6.5
   isar: ^3.0.5
   isar_flutter_libs: ^3.0.5
-  delta_markdown: ^0.8.0
+  quill_markdown: ^0.1.0
   easy_debounce: ^2.0.2+1
   path: ^1.8.2
   path_provider: ^2.0.11
