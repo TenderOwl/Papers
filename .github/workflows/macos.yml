@@ -15,7 +15,6 @@ jobs:
         with:
           channel: stable
           cache: true
-          architecture: arm64
       - name: Enable Macos
         run: flutter config --enable-macos-desktop
       - name: Build macOS app
@@ -46,16 +45,16 @@ jobs:
           brew install create-dmg
           cd $MACOS_APP_RELEASE_PATH
           create-dmg \
-            --volname "papers" \
+            --volname "Papers" \
             --window-pos 200 120 \
             --window-size 800 529 \
             --icon-size 130 \
             --text-size 14 \
-            --icon "papers.app" 260 250 \
-            --hide-extension "papers.app" \
+            --icon "Papers.app" 260 250 \
+            --hide-extension "Papers.app" \
             --app-drop-link 540 250 \
             --hdiutil-quiet \
-            "papers.dmg" \
+            "Papers.dmg" \
             "papers.app"
       - name: Create Version Number
         id: versions
