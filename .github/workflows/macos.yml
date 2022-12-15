@@ -1,69 +1,92 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: build macos
-
-on:
+---
+name: On MacOS Deploy
+"on":
   push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-
+    branches:
+      - "main"
 jobs:
-  build:
-    name: flutter build app
-    strategy:
-      matrix:
-        include:
-          - runs-on: macos-latest
-            platform: macos
-            arch: x64
-            binary-name: papers.app
-          - runs-on: macos-latest
-            platform: macos
-            arch: arm64
-            binary-name: papers.app
-    runs-on: ${{ matrix.runs-on }}
+  on-push-main:
+    runs-on: macos-latest
+    env:
+      MACOS_APP_RELEASE_PATH: build/macos/Build/Products/Release
+      APP_NAME: papers
     steps:
-      # Checkout the project
       - uses: actions/checkout@v3
-      # Install Flutter with
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
+          channel: stable
           cache: true
-          # architecture: arm64
-      # Enable platforms
-      - run: flutter config --enable-${{ matrix.platform }}-desktop
-      - name: Build app
-        run: flutter build ${{ matrix.platform }}
-      - uses: actions/upload-artifact@v3.1.1
+      - name: Enable Macos
+        run: flutter config --enable-macos-desktop
+      - name: Build macOS app
+        run: flutter build macos --release
+      # - name: Codesign executable
+      #   env:
+      #     MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      #     MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      #   run: |
+      #     echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+      #     echo "Create Keychain"
+      #     security create-keychain -p <YOUR-PASSWORD> build.keychain
+      #     echo "Assign to Login Keychain"
+      #     security default-keychain -s build.keychain
+      #     echo "Unlock the Login Keychain"
+      #     security unlock-keychain -p <YOUR-PASSWORD> build.keychain
+      #     echo "Import certificate"
+      #     security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+      #     echo "Set Key Partition"
+      #     security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k <YOUR-PASSWORD> build.keychain
+      #     echo "Find Identity"
+      #     security find-identity
+      #     echo "Sign the app"
+      #     /usr/bin/codesign --force --deep -s <IDENTITY-ID> ./$MACOS_APP_RELEASE_PATH/$APP_NAME.app
+      - name: Create a dmg
+        run: |
+          echo "Install create-dmg"
+          brew install create-dmg
+          cd $MACOS_APP_RELEASE_PATH
+          create-dmg \
+            --volname "$APP_NAME" \
+            --window-pos 200 120 \
+            --window-size 800 529 \
+            --icon-size 130 \
+            --text-size 14 \
+            --icon "$APP_NAME.app" 260 250 \
+            --hide-extension "$APP_NAME.app" \
+            --app-drop-link 540 250 \
+            --hdiutil-quiet \
+            "$APP_NAME.dmg" \
+            "$APP_NAME.app"
+      - name: Create Version Number
+        id: versions
+        run: |
+          git fetch
+          VERSION_WITHOUT_SUFFIX="$(grep 'version:' pubspec.yaml | awk '{ print $2 }' | cut -d'+' -f 1)"
+          function parse_git_hash() {
+            git rev-list --count origin/main
+          }
+          MAIN_COUNT=$(parse_git_hash)
+          APP_VERSION="$VERSION_WITHOUT_SUFFIX+$MAIN_COUNT"
+          echo "::set-output name=version::$(echo $APP_VERSION)"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: papers-${{ matrix.runs-on }}-${{ matrix.platform}}
-          path: ./build/${{ matrix.platform }}/Build/Products/Release/papers.app
-
-  release:
-    needs: build
-    name: github release
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - arch: x64
-            platform: macos
-            binary-name: papers.app
-          - arch: arm64
-            platform: macos
-            binary-name: papers.app
-    steps:
-      - uses: actions/download-artifact@v3.0.1
+          tag_name: ${{ steps.versions.outputs.version }}
+          release_name: Release ${{ steps.versions.outputs.version }}
+          body: |
+            Release Notes
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: papers-macos-latest-${{ matrix.platform}}
-          path: papers-${{ matrix.platform }}
-      - uses: softprops/action-gh-release@v0.1.14
-        with:
-          draft: true
-          files: bin-*/*
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/macos/Build/Products/Release/$APP_NAME.dmg
+          asset_name: $APP_NAME.dmg
+          asset_content_type: application/octet-stream
