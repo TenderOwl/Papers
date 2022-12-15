@@ -1,0 +1,69 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: build macos
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: flutter build app
+    strategy:
+      matrix:
+        include:
+          - runs-on: macos-latest
+            platform: macos
+            arch: x64
+            binary-name: papers.app
+          - runs-on: macos-latest
+            platform: macos
+            arch: arm64
+            binary-name: papers.app
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      # Checkout the project
+      - uses: actions/checkout@v3
+      # Install Flutter with
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+          # architecture: arm64
+      # Enable platforms
+      - run: flutter config --enable-${{ matrix.platform }}-desktop
+      - name: Build app
+        run: flutter build ${{ matrix.platform }}
+      - uses: actions/upload-artifact@v3.1.1
+        with:
+          name: papers-${{ matrix.runs-on }}-${{ matrix.platform}}
+          path: ./build/${{ matrix.platform }}/Build/Products/Release/papers.app
+
+  release:
+    needs: build
+    name: github release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            platform: macos
+            binary-name: papers.app
+          - arch: arm64
+            platform: macos
+            binary-name: papers.app
+    steps:
+      - uses: actions/download-artifact@v3.0.1
+        with:
+          name: papers-macos-latest-${{ matrix.platform}}
+          path: papers-${{ matrix.platform }}
+      - uses: softprops/action-gh-release@v0.1.14
+        with:
+          draft: true
+          files: bin-*/*
