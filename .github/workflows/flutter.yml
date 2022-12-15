@@ -3,40 +3,48 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Dart
+name: Flutter Workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  compile:
-    name: dart compile exe
+  build:
+    name: flutter build app
     strategy:
       matrix:
         include:
           - runs-on: ubuntu-latest
-            binary-name: spotty_linux_amd64
+            platform: linux
+            binary-name: papers_linux_amd64
           - runs-on: macos-latest
-            binary-name: spotty_macos_amd64
+            platform: macos
+            binary-name: papers_macos_amd64
           - runs-on: windows-latest
-            binary-name: spotty_windows.exe
+            platform: windows
+            binary-name: papers_windows.exe
     runs-on: ${{ matrix.runs-on }}
     steps:
-      - uses: actions/checkout@v3.2.0
-      - uses: dart-lang/setup-dart@v1.3
-      - run: dart pub get
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "2.10.0"
+          channel: "stable"
+      - name: Install dependencies
+        run: flutter pub get
       - run: mkdir ${{ matrix.runs-on }}
-      - run: dart compile exe bin/spotty.dart -o ${{ matrix.runs-on }}/${{ matrix.binary-name }}
+      - name: Build app
+        run: flutter build ${{ matrix.platform }} ${{ matrix.runs-on }}/${{ matrix.binary-name }}
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: bin-${{ matrix.runs-on }}
           path: ${{ matrix.runs-on }}
-          
+
   release:
-    needs: compile
+    needs: build
     name: github release
     runs-on: ubuntu-latest
     steps:
