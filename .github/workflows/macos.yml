@@ -9,7 +9,6 @@ jobs:
     runs-on: macos-latest
     env:
       MACOS_APP_RELEASE_PATH: build/macos/Build/Products/Release
-      APP_NAME: papers
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
@@ -39,24 +38,24 @@ jobs:
       #     echo "Find Identity"
       #     security find-identity
       #     echo "Sign the app"
-      #     /usr/bin/codesign --force --deep -s <IDENTITY-ID> ./$MACOS_APP_RELEASE_PATH/$APP_NAME.app
+      #     /usr/bin/codesign --force --deep -s <IDENTITY-ID> ./$MACOS_APP_RELEASE_PATH/papers.app
       - name: Create a dmg
         run: |
           echo "Install create-dmg"
           brew install create-dmg
           cd $MACOS_APP_RELEASE_PATH
           create-dmg \
-            --volname "$APP_NAME" \
+            --volname "papers" \
             --window-pos 200 120 \
             --window-size 800 529 \
             --icon-size 130 \
             --text-size 14 \
-            --icon "$APP_NAME.app" 260 250 \
-            --hide-extension "$APP_NAME.app" \
+            --icon "papers.app" 260 250 \
+            --hide-extension "papers.app" \
             --app-drop-link 540 250 \
             --hdiutil-quiet \
-            "$APP_NAME.dmg" \
-            "$APP_NAME.app"
+            "papers.dmg" \
+            "papers.app"
       - name: Create Version Number
         id: versions
         run: |
@@ -87,6 +86,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/macos/Build/Products/Release/$APP_NAME.dmg
-          asset_name: $APP_NAME.dmg
+          asset_path: build/macos/Build/Products/Release/papers.dmg
+          asset_name: papers.dmg
           asset_content_type: application/octet-stream
