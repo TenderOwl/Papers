@@ -203,6 +203,12 @@ class _PaperPageState extends State<PaperPage> {
   void sharePaper() {
     final filename = '${paper?.title ?? 'Paper'}.md';
     final plainText = controller.document.toPlainText();
+
+    if (Platform.isLinux || Platform.isWindows) {
+      Share.share(plainText, subject: filename);
+      return;
+    }
+
     final bytes = Uint8List.fromList(utf8.encode(plainText));
 
     Share.shareXFiles([
