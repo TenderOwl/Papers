@@ -1,4 +1,4 @@
-package com.example.papers
+package com.tenderowl.papers
 
 import io.flutter.embedding.android.FlutterActivity
 
