@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  handy_window
   isar_flutter_libs
   pasteboard
   printing
