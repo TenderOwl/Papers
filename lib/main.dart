@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:adwaita/adwaita.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,25 +15,48 @@ import 'src/router.dart';
 void main() async {
   await initServices();
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+
+  final ValueNotifier<ThemeMode> themeNotifier =
+      ValueNotifier(ThemeMode.system);
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Papers',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // colorSchemeSeed: const Color(0xFF672024),
-        colorSchemeSeed: const Color(0xff335763),
-        textTheme: GoogleFonts.ibmPlexSansTextTheme(),
-      ),
-      routerConfig: router,
-    );
+    if (Platform.isLinux) {
+      return ValueListenableBuilder<ThemeMode>(
+        valueListenable: themeNotifier,
+        builder: (_, ThemeMode currentMode, __) {
+          return MaterialApp.router(
+              theme: AdwaitaThemeData.light(),
+              darkTheme: AdwaitaThemeData.dark(),
+              debugShowCheckedModeBanner: false,
+              routerConfig: router,
+              themeMode: currentMode);
+        },
+      );
+    } else {
+      return MaterialApp.router(
+        title: 'Papers',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          // colorSchemeSeed: const Color(0xFF672024),
+          colorSchemeSeed: const Color(0xff335763),
+          textTheme: GoogleFonts.ibmPlexSansTextTheme(),
+        ),
+        darkTheme: ThemeData(
+          backgroundColor: Colors.black,
+          colorSchemeSeed: const Color(0xff335763),
+          textTheme: GoogleFonts.ibmPlexSansTextTheme(),
+        ),
+        themeMode: ThemeMode.dark,
+        routerConfig: router,
+      );
+    }
   }
 }
 

@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # System packages
   go_router: ^5.2.3
   get: ^4.6.5
   isar: ^3.0.5
@@ -20,21 +21,22 @@ dependencies:
   easy_debounce: ^2.0.2+1
   path: ^1.8.2
   path_provider: ^2.0.11
+  pdf: ^3.8.4
+  printing: ^5.9.3
+  delta_to_html: ^0.2.1
 
+  # Platform specific packages
+  # Linux
   handy_window: ^0.1.9
+  adwaita: ^0.5.2
+
+  # UI packages
   line_icons: ^2.0.1
   flutter_quill: ^6.1.6
   google_fonts: ^3.0.1
   share_plus: ^6.3.0
   context_menus: ^1.0.2
-  pdf: ^3.8.4
-  printing: ^5.9.3
-  delta_to_html: ^0.2.1
   file_picker: ^5.2.4
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
 
 dev_dependencies:
   flutter_test:
