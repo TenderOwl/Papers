@@ -1,4 +1,4 @@
-import 'dart:convert' show LineSplitter, jsonEncode, utf8;
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:context_menus/context_menus.dart';
@@ -10,14 +10,17 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:line_icons/line_icon.dart';
+import 'package:papers/src/components/papers_list.dart';
 import 'package:path/path.dart' show basenameWithoutExtension;
 
+import '../components/papers_grid.dart';
 import '../actions/dispatcher.dart';
 import '../actions/search_for_paper.dart';
-import '../components/paper_tile.dart';
 import '../components/search_papers_dialog.dart';
 import '../models/paper.dart';
 import '../services/papers_service.dart';
+
+enum ViewMode { grid, list }
 
 class PapersPage extends StatefulWidget {
   const PapersPage({super.key});
@@ -29,18 +32,7 @@ class PapersPage extends StatefulWidget {
 class _PapersPageState extends State<PapersPage> {
   PapersService papersService = Get.find();
   List<Paper> papers = [];
-
-  @override
-  void initState() {
-    super.initState();
-    reloadPapers();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    reloadPapers();
-  }
+  ViewMode viewMode = ViewMode.grid;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +69,7 @@ class _PapersPageState extends State<PapersPage> {
               ),
               leadingWidth: Platform.isMacOS ? 128 : 56,
               actions: [
+                buildViewModeButton(),
                 Tooltip(
                   message: 'Search for paper',
                   waitDuration: const Duration(milliseconds: 400),
@@ -94,73 +87,37 @@ class _PapersPageState extends State<PapersPage> {
             ),
             body: ContextMenuOverlay(
               child: SafeArea(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: papers
-                          .map(
-                            (paper) => SizedBox(
-                              width: 120,
-                              height: 120,
-                              child: ContextMenuRegion(
-                                contextMenu: GenericContextMenu(
-                                  injectDividers: true,
-                                  buttonConfigs: [
-                                    ContextMenuButtonConfig("Export",
-                                        onPressed: () {}),
-                                    ContextMenuButtonConfig("Archive",
-                                        onPressed: () {}),
-                                    ContextMenuButtonConfig("Delete",
-                                        onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          title: const Text('Delete Paper?'),
-                                          content: const Text(
-                                            'Paper will be deleted permanently.\nThis action cannot be undone.',
-                                          ),
-                                          icon: LineIcon.trash(size: 36),
-                                          iconColor: Theme.of(context)
-                                              .colorScheme
-                                              .error,
-                                          actions: [
-                                            TextButton(
-                                              child: const Text('Cancel'),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                            TextButton(
-                                              child: const Text('Delete'),
-                                              onPressed: () {
-                                                deletePaper(paper.id);
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }),
-                                  ],
-                                ),
-                                child: PaperTile(
-                                  paper: paper,
-                                  onTap: (paperId) {
-                                    context.pushNamed(
-                                      'paperPage',
-                                      params: {'paperId': paperId.toString()},
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
+                child: StreamBuilder<void>(
+                  stream: papersService.isar.papers.watchLazy(),
+                  builder: (context, snapshot) {
+                    return FutureBuilder(
+                      future: papersService.getAll(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          final papers = snapshot.data;
+                          return viewMode == ViewMode.grid
+                              ? PapersGrid(
+                                  papers: papers,
+                                  onPaperTap: onPaperTap,
+                                  onDeletePaper: deletePaper,
+                                )
+                              : PapersList(
+                                  papers: papers,
+                                  onPaperTap: onPaperTap,
+                                  onDeletePaper: deletePaper,
+                                );
+                        } else {
+                          if (snapshot.hasError) {
+                            return const SizedBox.shrink();
+                          } else {
+                            return const Center(
+                              child: CircularProgressIndicator.adaptive(),
+                            );
+                          }
+                        }
+                      },
+                    );
+                  },
                 ),
               ),
             ),
@@ -176,14 +133,40 @@ class _PapersPageState extends State<PapersPage> {
     );
   }
 
-  void reloadPapers() {
-    setState(() {
-      papers = papersService.getAllSync();
-    });
+  Widget buildViewModeButton() {
+    switch (viewMode) {
+      case ViewMode.grid:
+        return IconButton(
+          onPressed: () {
+            setState(() {
+              viewMode = ViewMode.list;
+            });
+          },
+          splashRadius: 24,
+          icon: LineIcon.list(),
+        );
+      default:
+        return IconButton(
+          onPressed: () {
+            setState(() {
+              viewMode = ViewMode.grid;
+            });
+          },
+          splashRadius: 24,
+          icon: LineIcon.thLarge(),
+        );
+    }
+  }
+
+  void onPaperTap(int paperId) {
+    context.pushNamed(
+      'paperPage',
+      params: {'paperId': paperId.toString()},
+    );
   }
 
   void deletePaper(int paperId) {
-    papersService.delete(paperId).then((value) => reloadPapers());
+    papersService.delete(paperId);
   }
 
   void onSearchForPaper() {
@@ -212,12 +195,10 @@ class _PapersPageState extends State<PapersPage> {
       );
 
       await papersService.put(paper);
-
-      reloadPapers();
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Cannot get that file'),
           ),
         );

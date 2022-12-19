@@ -7,7 +7,7 @@ class PaperTile extends StatelessWidget {
   const PaperTile({super.key, required this.paper, this.onTap});
 
   final Paper paper;
-  final void Function(int? bookId)? onTap;
+  final void Function(int bookId)? onTap;
 
   @override
   Widget build(BuildContext context) {
