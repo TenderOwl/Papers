@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:context_menus/context_menus.dart';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,10 +11,10 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:line_icons/line_icon.dart';
-import 'package:papers/src/components/papers_list.dart';
 import 'package:path/path.dart' show basenameWithoutExtension;
 
 import '../components/papers_grid.dart';
+import '../components/papers_list.dart';
 import '../actions/dispatcher.dart';
 import '../actions/search_for_paper.dart';
 import '../components/search_papers_dialog.dart';
@@ -23,7 +24,9 @@ import '../services/papers_service.dart';
 enum ViewMode { grid, list }
 
 class PapersPage extends StatefulWidget {
-  const PapersPage({super.key});
+  const PapersPage({super.key, this.bookId = 0});
+
+  final int bookId;
 
   @override
   State<PapersPage> createState() => _PapersPageState();
@@ -33,6 +36,7 @@ class _PapersPageState extends State<PapersPage> {
   PapersService papersService = Get.find();
   List<Paper> papers = [];
   ViewMode viewMode = ViewMode.grid;
+  bool dragging = false;
 
   @override
   Widget build(BuildContext context) {
@@ -85,39 +89,73 @@ class _PapersPageState extends State<PapersPage> {
                 const SizedBox(width: 12),
               ],
             ),
-            body: ContextMenuOverlay(
-              child: SafeArea(
-                child: StreamBuilder<void>(
-                  stream: papersService.isar.papers.watchLazy(),
-                  builder: (context, snapshot) {
-                    return FutureBuilder(
-                      future: papersService.getAll(),
+            body: DropTarget(
+              onDragEntered: (details) => setState(() {
+                dragging = true;
+              }),
+              onDragExited: (details) => setState(() {
+                dragging = false;
+              }),
+              onDragDone: (details) {
+                dragging = false;
+                for (var file in details.files) {
+                  importFile(file.path);
+                }
+                setState(() {});
+              },
+              child: Container(
+                width: double.maxFinite,
+                height: double.maxFinite,
+                child: ContextMenuOverlay(
+                  child: SafeArea(
+                    child: StreamBuilder<void>(
+                      stream: papersService.isar.papers.watchLazy(),
                       builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          final papers = snapshot.data;
-                          return viewMode == ViewMode.grid
-                              ? PapersGrid(
-                                  papers: papers,
-                                  onPaperTap: onPaperTap,
-                                  onDeletePaper: deletePaper,
-                                )
-                              : PapersList(
-                                  papers: papers,
-                                  onPaperTap: onPaperTap,
-                                  onDeletePaper: deletePaper,
+                        return FutureBuilder(
+                          future: papersService.getAll(),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              final papers = snapshot.data;
+                              return Stack(
+                                children: [
+                                  viewMode == ViewMode.grid
+                                      ? PapersGrid(
+                                          papers: papers,
+                                          onPaperTap: onPaperTap,
+                                          onDeletePaper: deletePaper,
+                                        )
+                                      : PapersList(
+                                          papers: papers,
+                                          onPaperTap: onPaperTap,
+                                          onDeletePaper: deletePaper,
+                                        ),
+                                  if (dragging)
+                                    Container(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withAlpha(30),
+                                      child: const Center(
+                                        child:
+                                            Text('Drop files here to import'),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            } else {
+                              if (snapshot.hasError) {
+                                return const SizedBox.shrink();
+                              } else {
+                                return const Center(
+                                  child: CircularProgressIndicator.adaptive(),
                                 );
-                        } else {
-                          if (snapshot.hasError) {
-                            return const SizedBox.shrink();
-                          } else {
-                            return const Center(
-                              child: CircularProgressIndicator.adaptive(),
-                            );
-                          }
-                        }
+                              }
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -177,10 +215,24 @@ class _PapersPageState extends State<PapersPage> {
   }
 
   Future onImportMarkdown() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['txt', 'md', 'rst']);
 
-    if (result != null) {
-      final file = File(result.files.single.path!);
+    if (result == null) return;
+
+    for (var file in result.files) {
+      importFile(file.path!);
+    }
+  }
+
+  Future importFile(String path) async {
+    print('importFile  $path');
+    try {
+      final file = File(path);
+      if (!await file.exists()) return;
+
       final delta = quill.Delta();
       for (var line in await file.readAsLines()) {
         delta.insert('$line\n');
@@ -189,13 +241,13 @@ class _PapersPageState extends State<PapersPage> {
       // final doc = quill.Document.fromDelta(delta);
 
       final paper = Paper(
-        bookId: 0,
+        bookId: widget.bookId,
         content: jsonEncode(delta.toJson()),
-        title: basenameWithoutExtension(result.files.single.path!),
+        title: basenameWithoutExtension(file.path),
       );
 
       await papersService.put(paper);
-    } else {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
