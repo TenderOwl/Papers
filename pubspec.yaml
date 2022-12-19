@@ -24,6 +24,7 @@ dependencies:
   pdf: ^3.8.4
   printing: ^5.9.3
   delta_to_html: ^0.2.1
+  desktop_drop: ^0.4.0
 
   # Platform specific packages
   # Linux
