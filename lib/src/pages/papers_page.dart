@@ -135,9 +135,17 @@ class _PapersPageState extends State<PapersPage> {
                                           .colorScheme
                                           .primary
                                           .withAlpha(30),
-                                      child: const Center(
-                                        child:
-                                            Text('Drop files here to import'),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          LineIcon.download(size: 64),
+                                          const SizedBox(height: 12),
+                                          const Center(
+                                            child: Text(
+                                                'Drop files here to import'),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                 ],
