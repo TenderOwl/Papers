@@ -11,8 +11,10 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:line_icons/line_icon.dart';
+import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart' show basenameWithoutExtension;
 
+import '../components/editor_view.dart';
 import '../components/papers_grid.dart';
 import '../components/papers_list.dart';
 import '../actions/dispatcher.dart';
@@ -37,6 +39,12 @@ class _PapersPageState extends State<PapersPage> {
   List<Paper> papers = [];
   ViewMode viewMode = ViewMode.grid;
   bool dragging = false;
+
+  Paper? selectedPaper;
+  final splitViewController = MultiSplitViewController(areas: [
+    Area(minimalSize: 150, weight: 0),
+    Area(minimalSize: 360, weight: 1),
+  ]);
 
   @override
   Widget build(BuildContext context) {
@@ -89,80 +97,99 @@ class _PapersPageState extends State<PapersPage> {
                 const SizedBox(width: 12),
               ],
             ),
-            body: DropTarget(
-              onDragEntered: (details) => setState(() {
-                dragging = true;
-              }),
-              onDragExited: (details) => setState(() {
-                dragging = false;
-              }),
-              onDragDone: (details) {
-                dragging = false;
-                for (var file in details.files) {
-                  importFile(file.path);
-                }
-                setState(() {});
-              },
-              child: Container(
-                width: double.maxFinite,
-                height: double.maxFinite,
-                child: ContextMenuOverlay(
-                  child: SafeArea(
-                    child: StreamBuilder<void>(
-                      stream: papersService.isar.papers.watchLazy(),
-                      builder: (context, snapshot) {
-                        return FutureBuilder(
-                          future: papersService.getAll(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              final papers = snapshot.data;
-                              return Stack(
-                                children: [
-                                  viewMode == ViewMode.grid
-                                      ? PapersGrid(
-                                          papers: papers,
-                                          onPaperTap: onPaperTap,
-                                          onDeletePaper: deletePaper,
-                                        )
-                                      : PapersList(
-                                          papers: papers,
-                                          onPaperTap: onPaperTap,
-                                          onDeletePaper: deletePaper,
-                                        ),
-                                  if (dragging)
-                                    Container(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withAlpha(30),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          LineIcon.download(size: 64),
-                                          const SizedBox(height: 12),
-                                          const Center(
-                                            child: Text(
-                                                'Drop files here to import'),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              );
-                            } else {
-                              if (snapshot.hasError) {
-                                return const SizedBox.shrink();
-                              } else {
-                                return const Center(
-                                  child: CircularProgressIndicator.adaptive(),
-                                );
-                              }
-                            }
-                          },
-                        );
-                      },
+            body: ContextMenuOverlay(
+              child: SafeArea(
+                child: MultiSplitViewTheme(
+                  data: MultiSplitViewThemeData(
+                    dividerPainter: DividerPainters.grooved1(
+                      color:
+                          Theme.of(context).colorScheme.primary.withAlpha(50),
+                      highlightedColor:
+                          Theme.of(context).colorScheme.primary.withAlpha(125),
+                      animationDuration: const Duration(milliseconds: 250),
                     ),
+                  ),
+                  child: MultiSplitView(
+                    controller: splitViewController,
+                    children: [
+                      DropTarget(
+                        onDragEntered: (details) => setState(() {
+                          dragging = true;
+                        }),
+                        onDragExited: (details) => setState(() {
+                          dragging = false;
+                        }),
+                        onDragDone: (details) {
+                          dragging = false;
+                          for (var file in details.files) {
+                            importFile(file.path);
+                          }
+                          setState(() {});
+                        },
+                        child: StreamBuilder<void>(
+                          stream: papersService.isar.papers.watchLazy(),
+                          builder: (context, snapshot) {
+                            return FutureBuilder(
+                              future: papersService.getAll(),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  final papers = snapshot.data;
+                                  return Stack(
+                                    children: [
+                                      viewMode == ViewMode.grid
+                                          ? PapersGrid(
+                                              papers: papers,
+                                              onPaperTap: onPaperTap,
+                                              onDeletePaper: deletePaper,
+                                            )
+                                          : PapersList(
+                                              papers: papers,
+                                              onPaperTap: (paper) {
+                                                setState(() {
+                                                  selectedPaper = paper;
+                                                });
+                                              },
+                                              onDeletePaper: deletePaper,
+                                            ),
+                                      if (dragging)
+                                        Container(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withAlpha(30),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              LineIcon.download(size: 64),
+                                              const SizedBox(height: 12),
+                                              const Center(
+                                                child: Text(
+                                                    'Drop files here to import'),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                } else {
+                                  if (snapshot.hasError) {
+                                    return const SizedBox.shrink();
+                                  } else {
+                                    return const Center(
+                                      child:
+                                          CircularProgressIndicator.adaptive(),
+                                    );
+                                  }
+                                }
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      if (viewMode == ViewMode.list)
+                        EditorView(paper: selectedPaper),
+                    ],
                   ),
                 ),
               ),
@@ -196,6 +223,7 @@ class _PapersPageState extends State<PapersPage> {
           onPressed: () {
             setState(() {
               viewMode = ViewMode.grid;
+              selectedPaper = null;
             });
           },
           splashRadius: 24,
@@ -236,7 +264,6 @@ class _PapersPageState extends State<PapersPage> {
   }
 
   Future importFile(String path) async {
-    print('importFile  $path');
     try {
       final file = File(path);
       if (!await file.exists()) return;

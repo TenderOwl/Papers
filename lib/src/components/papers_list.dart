@@ -11,7 +11,7 @@ class PapersList extends StatelessWidget {
   });
 
   final List<Paper>? papers;
-  final void Function(int paperId)? onPaperTap;
+  final void Function(Paper paper)? onPaperTap;
   final void Function(int paperId)? onDeletePaper;
 
   @override
@@ -21,8 +21,13 @@ class PapersList extends StatelessWidget {
       itemBuilder: (context, index) {
         final paper = papers![index];
         return ListTile(
-          title: Text(paper.title ?? ""),
-          onTap: onPaperTap != null ? () => onPaperTap!(paper.id) : null,
+          dense: true,
+          title: Text(
+            paper.title ?? "",
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          ),
+          onTap: onPaperTap != null ? () => onPaperTap!(paper) : null,
         );
       },
     );
