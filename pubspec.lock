@@ -196,7 +196,7 @@ packages:
       name: delta_to_html
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.1"
+    version: "0.2.2"
   desktop_drop:
     dependency: "direct main"
     description:
@@ -210,14 +210,14 @@ packages:
       name: device_info_plus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "7.0.1"
+    version: "8.0.0"
   device_info_plus_platform_interface:
     dependency: transitive
     description:
       name: device_info_plus_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.1"
+    version: "7.0.0"
   diff_match_patch:
     dependency: transitive
     description:
@@ -231,7 +231,7 @@ packages:
       name: easy_debounce
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.2+1"
+    version: "2.0.3"
   equatable:
     dependency: transitive
     description:
@@ -266,7 +266,7 @@ packages:
       name: file_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.2.4"
+    version: "5.2.5"
   fixnum:
     dependency: transitive
     description:
@@ -348,7 +348,7 @@ packages:
       name: flutter_quill
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.1.6"
+    version: "6.2.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -414,7 +414,7 @@ packages:
       name: handy_window
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.9"
+    version: "0.2.0"
   http:
     dependency: transitive
     description:
